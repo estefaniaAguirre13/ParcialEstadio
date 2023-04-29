@@ -1,0 +1,81 @@
+﻿@page "/"
+@using System.Net;
+@using System.Net.Http.Json
+@using CurrieTechnologies.Razor.SweetAlert2;
+@using ParcialEstadio.Shared.Entities;
+@using Web.Repositories;
+@inject SweetAlertService sweetAlertService
+@inject IRepository repository
+@inject IJSRuntime jsRuntime
+
+
+
+
+<PageTitle>Index</PageTitle>
+
+<input type="number" @bind-value="Id" disabled="@campoBloqueado" />
+<button @onclick="SearchTicked">Buscar</button>
+
+@if (boleta != null && boleta.Usada == false)
+{
+    <h2>Ticket Encontrado:</h2>
+    <p>ID: @boleta.Id</p>
+    <div class="card-header">
+        <a class="btn btn-sm btn-primary float-start" href="/boletas/edit/@boleta.Id"><i class="oi oi-plus" /> Escoger Porteria</a>
+    </div>
+}else if (boleta != null)
+{
+    <h2>Ticket Encontrado:</h2>
+    <p>ID: @boleta.Id</p>
+    <p>Fecha de Uso: @boleta.FechaUso</p>
+    <p>Entrada en: @boleta.Porteria</p>
+}
+
+
+
+@code {
+    public Boleta? boleta { get; set; }
+    public int Id { get; set; }
+    private bool campoBloqueado;
+
+
+    protected async Task SearchTicked()
+    {
+        var responseHttp = await repository.Get<Boleta>($"/api/estadio/{Id}");
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        boleta = responseHttp.Response;
+
+        if (boleta!.Usada == true)
+        {
+            responseHttp = await repository.Get<Boleta>($"/api/estadio/info/{Id}");
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+        }
+
+        //Aqui Funcion a llamar si El Tiquete Exite pero, aún no ha sido Registrado
+        if(boleta.Usada == false)
+        {
+            
+        }
+        campoBloqueado = true;
+    }
+
+    bool showModal = false;
+
+    public async Task ShowModal()
+    {
+        showModal = true;
+        await jsRuntime.InvokeAsync<object>("$('#myModal').modal", "show");
+    }
+
+}
