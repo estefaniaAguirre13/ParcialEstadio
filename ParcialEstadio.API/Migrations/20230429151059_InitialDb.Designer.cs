@@ -12,7 +12,7 @@ using Sales.API.Data;
 namespace ParcialEstadio.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230429032419_InitialDb")]
+    [Migration("20230429151059_InitialDb")]
     partial class InitialDb
     {
         /// <inheritdoc />
